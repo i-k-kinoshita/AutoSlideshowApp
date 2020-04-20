@@ -8,11 +8,11 @@ import android.os.Build
 import android.util.Log
 import android.provider.MediaStore
 import android.content.ContentUris
-import android.content.Intent
 import android.net.Uri
+import android.os.Handler
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.Exception
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() , View.OnClickListener{
@@ -20,6 +20,13 @@ class MainActivity : AppCompatActivity() , View.OnClickListener{
     private val PERMISSIONS_REQUEST_CODE = 100
     var mutableList = mutableListOf<Uri>()
     var cnt:Int = 0
+
+    private var mTimer: Timer? = null
+
+    // タイマー用の時間のための変数
+    private var mTimerSec = 0.0
+
+    private var mHandler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +47,50 @@ class MainActivity : AppCompatActivity() , View.OnClickListener{
             getContentsInfo()
         }
 
-        Log.d("Kotlintest", cnt.toString())
-        Log.d("Kotlintest", mutableList.count().toString())
-
+        //進む/戻るボタン処理
         next_button.setOnClickListener(this)
         back_button.setOnClickListener(this)
 
+        //再生ボタン処理
+        start_button.setOnClickListener {
+            if (start_button.text == "再生"){
+                mTimer = Timer()
+
+                mTimer!!.schedule(object : TimerTask() {
+                    override fun run() {
+                        mHandler.post {
+                            slide()
+                            start_button.text = "停止"
+                        }
+                    }
+                }, 2000, 2000) // 最初に始動させるまで 2000ミリ秒、ループの間隔を 2000ミリ秒 に設定
+                //進む/戻るボタンのタップ不可
+                next_button.isClickable = false
+                back_button.isClickable = false
+
+            }else if(start_button.text == "停止"){
+                mTimer!!.cancel()
+                start_button.text = "再生"
+                //進む/戻るボタンのタップ可
+                next_button.isClickable = true
+                back_button.isClickable = true
+
+            }
+        }
+    }
+
+    fun slide(){
+        if(cnt == mutableList.count()-1){
+            cnt = 0
+            imageView.setImageURI(mutableList[cnt])
+            Log.d("Kotlintest", (cnt+1).toString() + "枚目")
+
+        }else{
+            cnt++
+            imageView.setImageURI(mutableList[cnt])
+            Log.d("Kotlintest", (cnt+1).toString() + "枚目")
+
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -53,6 +98,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener{
             PERMISSIONS_REQUEST_CODE ->
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     getContentsInfo()
+                }else{
+                    //パーミッションの利用を拒否した場合
+                    next_button.isClickable = false
+                    back_button.isClickable = false
+                    start_button.isClickable = false
                 }
         }
     }
@@ -105,6 +155,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener{
 
             imageView.setImageURI(imageUri)
             Log.d("Kotlintest","firstView")
+
         }
 
         if (cursor!!.moveToFirst()) {
