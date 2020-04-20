@@ -47,34 +47,43 @@ class MainActivity : AppCompatActivity() , View.OnClickListener{
             getContentsInfo()
         }
 
-        //進む/戻るボタン処理
-        next_button.setOnClickListener(this)
-        back_button.setOnClickListener(this)
+        if(mutableList.isEmpty()) {
+            //写真が1枚もないときはボタン不可
+            next_button.isClickable = false
+            back_button.isClickable = false
+            start_button.isClickable = false
 
-        //再生ボタン処理
-        start_button.setOnClickListener {
-            if (start_button.text == "再生"){
-                mTimer = Timer()
+        }else{
+            //写真があるとき
+            //進む/戻るボタン処理
+            next_button.setOnClickListener(this)
+            back_button.setOnClickListener(this)
 
-                mTimer!!.schedule(object : TimerTask() {
-                    override fun run() {
-                        mHandler.post {
-                            slide()
-                            start_button.text = "停止"
+            //再生ボタン処理
+            start_button.setOnClickListener {
+                if (start_button.text == "再生") {
+                    mTimer = Timer()
+
+                    mTimer!!.schedule(object : TimerTask() {
+                        override fun run() {
+                            mHandler.post {
+                                slide()
+                                start_button.text = "停止"
+                            }
                         }
-                    }
-                }, 2000, 2000) // 最初に始動させるまで 2000ミリ秒、ループの間隔を 2000ミリ秒 に設定
-                //進む/戻るボタンのタップ不可
-                next_button.isClickable = false
-                back_button.isClickable = false
+                    }, 2000, 2000) // 最初に始動させるまで 2000ミリ秒、ループの間隔を 2000ミリ秒 に設定
+                    //進む/戻るボタンのタップ不可
+                    next_button.isClickable = false
+                    back_button.isClickable = false
 
-            }else if(start_button.text == "停止"){
-                mTimer!!.cancel()
-                start_button.text = "再生"
-                //進む/戻るボタンのタップ可
-                next_button.isClickable = true
-                back_button.isClickable = true
+                } else if (start_button.text == "停止") {
+                    mTimer!!.cancel()
+                    start_button.text = "再生"
+                    //進む/戻るボタンのタップ可
+                    next_button.isClickable = true
+                    back_button.isClickable = true
 
+                }
             }
         }
     }
